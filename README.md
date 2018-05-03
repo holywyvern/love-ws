@@ -177,4 +177,9 @@ Thanks to Ole Christian Eidheim for the awesome simple-websocket-library.
 
 - [x] plain websocket server
 - [x] plain websocket client
-- [ ] secure websocket client
+- [X] secure websocket client
+- [X] provide simple examples
+- [ ] TLS Server (Not sure)
+- [ ] Cleanup of code
+- [ ] Optimize methods
+- [ ] Better documentation
