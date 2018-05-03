@@ -14,6 +14,7 @@ public:
 	int type;
 	std::string message;
 	WsServerMessage(std::string id, int type, std::string message);
+	std::string getTypeName();
 };
 
 class WsServerChannel {
@@ -43,9 +44,15 @@ class LuaWsServerChannel {
     static WsServerChannel *check(lua_State *L, int narg);
     static const char className[];
     static const luaL_reg methods[];
+	// Lua VM methods
     static void setup(lua_State *L);
     static int create(lua_State *L);
     static int  gc(lua_State *L);
+	// Lua methods
+	static int disconnect(lua_State *L);
+	static int send(lua_State *L);
+	static int broadcast(lua_State *L);
+	static int checkQueue(lua_State *L);
 };
 
 #endif

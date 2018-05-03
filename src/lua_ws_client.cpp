@@ -24,11 +24,37 @@ const luaL_reg LuaWsClient::methods[] = {
 
 const char LuaWsClient::className[] = "LuaWsClient";
 
+WsClientMessage::WsClientMessage(int type, std::string message)
+{
+	this->type = type;
+	this->message = message;
+}
+
+std::string WsClientMessage::getTypeName()
+{
+	switch (this->type)
+	{
+	case 1: return std::string("message");
+	case 2: return std::string("open");
+	case 3: return std::string("close");
+	case 4: return std::string("error");
+	case 5: return std::string("connecting");
+	default: break;
+	}
+	return std::string("unknown");
+}
+
+WsClient::WsClient(const std::string &server_port_path) noexcept : 
+SimpleWeb::SocketClient<SimpleWeb::WS>(server_port_path) {
+	this->thread = nullptr;
+}
+
 void 
-WsClient::pushMessage(std::string message)
+WsClient::pushMessage(int type, std::string message)
 {
     std::lock_guard<std::mutex> lock(_queueMutex);
-    _messageQueue.push(message);
+	WsClientMessage msg(type, message);
+    _messageQueue.push(msg);
 }
 
 void
@@ -38,12 +64,17 @@ WsClient::popMessage(lua_State *L)
     if (_messageQueue.empty()) {
         lua_pushnil(L);
     } else {
-        auto str(_messageQueue.front());
-		size_t len = str.size();
-		const char *data = str.data();
-        lua_pushlstring(L, data, len);
+        auto msg(_messageQueue.front());
+		lua_createtable(L, 0, 2);
+		lua_pushstring(L, "type");
+		auto type = msg.getTypeName();
+		lua_pushlstring(L, type.data(), type.size());
+		lua_settable(L, -3);
+		lua_pushstring(L, "message");
+		lua_pushlstring(L, msg.message.data(), msg.message.size());
+		lua_settable(L, -3);
+		_messageQueue.pop();
     }
-    _messageQueue.pop();
 }
 
 void
@@ -99,16 +130,20 @@ int LuaWsClient::create(lua_State *L)
 	std::string ref(url, len);
     WsClient *client = new WsClient(url);
     client->_serverOpen = false;
-    client->on_message = [&](std::shared_ptr<WsClient::Connection> connection, std::shared_ptr<WsClient::Message> message) {
-        client->pushMessage(message->string());
+	client->pushMessage(5, std::string(""));
+    client->on_message = [=](std::shared_ptr<WsClient::Connection> connection, std::shared_ptr<WsClient::Message> message) {
+        client->pushMessage(1, message->string());
     };
-    client->on_open = [&](std::shared_ptr<WsClient::Connection> connection) {
+    client->on_open = [=](std::shared_ptr<WsClient::Connection> connection) {
         client->_serverOpen = true;
+		client->pushMessage(2, std::string(""));
     };
-    client->on_close = [&](std::shared_ptr<WsClient::Connection> connection, int status, const std::string & reason) {
+    client->on_close = [=](std::shared_ptr<WsClient::Connection> connection, int status, const std::string & reason) {
         client->_serverOpen = false;
+		client->pushMessage(3, std::string(""));
     };
-    client->on_error = [&](std::shared_ptr<WsClient::Connection> connection, const SimpleWeb::error_code &ec) {
+    client->on_error = [=](std::shared_ptr<WsClient::Connection> connection, const SimpleWeb::error_code &ec) {
+		client->pushMessage(4, ec.message());
     };
     lua_boxpointer(L, client);
     luaL_getmetatable(L, className);
@@ -118,15 +153,24 @@ int LuaWsClient::create(lua_State *L)
 
 int  LuaWsClient::gc(lua_State *L)
 {
-    WsClient *client = (WsClient*)lua_unboxpointer(L, 1);
-    delete client;
+    WsClient *ws = (WsClient*)lua_unboxpointer(L, 1);
+	if (ws->_serverOpen) {
+		ws->stop();
+		if (ws->thread) {
+			ws->thread->join();
+			ws->thread = nullptr;
+		}
+	}
+    delete ws;
     return 0;    
 }
 
 int LuaWsClient::connect(lua_State *L)
 {
     WsClient *ws = LuaWsClient::check(L, 1);
-    ws->start();
+	ws->thread = std::make_shared<std::thread>([=]() {
+		ws->start();
+	});
     return 0;
 }
 
@@ -136,6 +180,11 @@ int LuaWsClient::close(lua_State *L)
     if (!ws->_serverOpen) {
         return 0;
     }
+	ws->stop();
+	if (ws->thread) {
+		ws->thread->join();
+		ws->thread = nullptr;
+	}
     return 0;
 }
 

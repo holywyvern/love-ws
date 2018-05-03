@@ -15,14 +15,59 @@
 #define method(class, name) \
     { #name, class::name }
 
+static const std::string CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
 const luaL_reg LuaWsServer::methods[] = {
 	{"getChannel", LuaWsServerChannel::create},
+	method(LuaWsServer, start),
+	method(LuaWsServer, stop),
     {0, 0}};
 
 const char LuaWsServer::className[] = "LuaWsServer";
 
+static std::string
+generateUUID() {
+	std::string uuid = std::string(36, ' ');
+	int rnd = 0;
+	int r = 0;
+
+	uuid[8] = '-';
+	uuid[13] = '-';
+	uuid[18] = '-';
+	uuid[23] = '-';
+
+	uuid[14] = '4';
+
+	for (int i = 0; i < 36; i++) {
+		if (i != 8 && i != 13 && i != 18 && i != 14 && i != 23) {
+			if (rnd <= 0x02) {
+				rnd = 0x2000000 + (std::rand() * 0x1000000) | 0;
+			}
+			rnd >>= 4;
+			uuid[i] = CHARS[(i == 19) ? ((rnd & 0xf) & 0x3) | 0x8 : rnd & 0xf];
+		}
+	}
+	return uuid;
+}
+
 WsServer::WsServer(int port) : SimpleWeb::SocketServer<SimpleWeb::WS>() {
 	this->config.port = port;
+	this->thread = nullptr;
+}
+
+std::string
+WsServer::getId(std::shared_ptr<WsServer::Connection> connection)
+{
+	std::lock_guard<std::mutex> lock(_idMutex);
+	if (_connectionIds.count(connection)  < 1) {
+		std::string uuid = generateUUID();
+		while (_idMap.count(uuid) > 0) {
+			uuid = generateUUID();
+		}
+		_connectionIds[connection] = uuid;
+		_idMap[uuid] = connection;
+	}
+	return _connectionIds[connection];
 }
 
 WsServer *
@@ -76,6 +121,31 @@ int LuaWsServer::create(lua_State *L)
 int  LuaWsServer::gc(lua_State *L)
 {
     WsServer *server = (WsServer*)lua_unboxpointer(L, 1);
+	if (server->thread) {
+		server->stop();
+		server->thread->join();
+		server->thread = nullptr;
+	}
     delete server;
     return 0;       
+}
+
+int LuaWsServer::start(lua_State *L)
+{
+	WsServer * server = LuaWsServer::check(L, 1);
+	server->thread = std::make_shared<std::thread>([=]() {
+		server->start();
+	});
+	return 0;
+}
+
+int LuaWsServer::stop(lua_State *L)
+{
+	WsServer * server = LuaWsServer::check(L, 1);
+	server->stop();
+	if (server->thread) {
+		server->thread->join();
+		server->thread = nullptr;
+	}
+	return 0;
 }

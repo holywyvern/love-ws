@@ -7,15 +7,24 @@
 #include "lua.hpp"
 #include "client_ws.hpp"
 
+class WsClientMessage {
+public:
+	int type;
+	std::string message;
+	WsClientMessage(int type, std::string message);
+	std::string getTypeName();
+};
+
 class WsClient : public SimpleWeb::SocketClient<SimpleWeb::WS>
 {
   public:
-	  WsClient(const std::string &server_port_path) noexcept : SimpleWeb::SocketClient<SimpleWeb::WS>(server_port_path)  {}
+	  WsClient(const std::string &server_port_path) noexcept;
     bool _serverOpen;
     std::mutex _queueMutex;
-    std::queue<std::string> _messageQueue;
+    std::queue<WsClientMessage> _messageQueue;
+	std::shared_ptr<std::thread> thread; 
 	void popMessage(lua_State *L);
-    void pushMessage(std::string message);
+    void pushMessage(int type, std::string message);
     void sendMessage(std::string message);
 };
 
