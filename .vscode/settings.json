@@ -1,0 +1,15 @@
+{
+    "editor.formatOnSave": false,
+    "files.associations": {
+        "system_error": "cpp",
+        "xlocale": "cpp",
+        "random": "cpp",
+        "xlocmes": "cpp",
+        "memory": "cpp",
+        "regex": "cpp",
+        "sstream": "cpp",
+        "queue": "cpp",
+        "xstring": "cpp",
+        "iostream": "cpp"
+    }
+}
