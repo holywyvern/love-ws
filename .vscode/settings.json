@@ -10,6 +10,7 @@
         "sstream": "cpp",
         "queue": "cpp",
         "xstring": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "mutex": "cpp"
     }
 }

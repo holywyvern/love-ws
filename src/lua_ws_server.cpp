@@ -1,4 +1,5 @@
 #include "lua_ws_server.hpp"
+#include "lua_ws_server_channel.hpp"
 
 #include "lua.hpp"
 
@@ -15,6 +16,7 @@
     { #name, class::name }
 
 const luaL_reg LuaWsServer::methods[] = {
+	{"getChannel", LuaWsServerChannel::create},
     {0, 0}};
 
 const char LuaWsServer::className[] = "LuaWsServer";

@@ -11,6 +11,7 @@ endif()
 add_library(ws MODULE
   src/lua_ws_client.cpp 
   src/lua_ws_server.cpp
+  src/lua_ws_server_channel.cpp
   src/lua_ws.cpp
 )
 
