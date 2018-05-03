@@ -1,5 +1,6 @@
 #include "lua.hpp"
 #include "lua_ws_client.hpp"
+#include "lua_ws_server.hpp"
 
 #if defined(_WIN32) || defined(WIN32)
 #define LOVE_WS_EXPORT __declspec(dllexport)
@@ -12,6 +13,6 @@ luaopen_ws(lua_State *L)
 {
     lua_newtable(L);
     LuaWsClient::setup(L);
-    //LuaWsServer::setup(L);
+    LuaWsServer::setup(L);
     return 1;
 }

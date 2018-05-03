@@ -87,7 +87,8 @@ void LuaWsClient::setup(lua_State *L)
     luaL_openlib(L, 0, methods, 0); // fill methodtable
     lua_pop(L, 1);                  // drop methodtable
 
-    lua_register(L, "newClient", LuaWsClient::create);
+	lua_pushcfunction(L, LuaWsClient::create);
+	lua_setfield(L, -2, "newClient");
 }
 
 int LuaWsClient::create(lua_State *L)
