@@ -67,8 +67,23 @@ For example:
 local client = ws.newClient("localhost:8080/game")
 ```
 
+
 Creates a client than will connect to localhost (the local machine) at port 8080 on the "game"
 namespace.
+
+If you need to connect using TLS for security reasons,
+you can also create a secure version of the client socket.
+
+```lua
+local client = ws.newTlsClient("localhost:8080/game", true)
+```
+
+The second argument (false by default) is if you should validate
+the certificate of the server.
+
+On development you may want to use self signed certificates,
+if that's the case, put it to false, However, you should 
+always put it as true in production.
 
 Then you should start the server:
 

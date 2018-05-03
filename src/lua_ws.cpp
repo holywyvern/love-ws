@@ -1,5 +1,6 @@
 #include "lua.hpp"
 #include "lua_ws_client.hpp"
+#include "lua_wss_client.hpp"
 #include "lua_ws_server.hpp"
 #include "lua_ws_server_channel.hpp"
 
@@ -13,8 +14,11 @@ extern "C" LUALIB_API LOVE_WS_EXPORT int
 luaopen_ws(lua_State *L)
 {
     lua_newtable(L);
+	// Plain websockets
     LuaWsClient::setup(L);
     LuaWsServer::setup(L);
 	LuaWsServerChannel::setup(L);
+	// Secure websockets
+	LuaWssClient::setup(L);
     return 1;
 }
