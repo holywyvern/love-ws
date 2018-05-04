@@ -53,7 +53,7 @@ cmake -G "Visual Studio 14 2015 Win64" .
 ##### For building lua 5.1 for 64 bits
 
 - Got the lua sources (https://www.lua.org/source/)
-- Added this on the Lua build (https://gist.github.com/squeek502/76fb065848897138a95d11f9aa0eedd4)
+- Added the CMake file from rude/megasource for lua
 - Make with Cmake
 
 ##### For building openssl for 64 bits
@@ -66,12 +66,13 @@ Followed instructions on INSTALL file:
 
 With the visual studio developer command line tools open:
 
-- perl Configure { VC-WIN32 | VC-WIN64A | VC-WIN64I | VC-CE }
+- perl Configure VC-WIN64A
 - nmake
 
 ##### Building all together
 
-- TODO
+Still not working, for some reason, lua is not recognizing my build
+as a module...
 
 ### Notes on non windows users
 
