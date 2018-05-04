@@ -71,8 +71,11 @@ With the visual studio developer command line tools open:
 
 ##### Building all together
 
-Still not working, for some reason, lua is not recognizing my build
-as a module...
+Build it using cmake again...
+Remember to configure your env variables to work properly.
+
+In this case, I linked opensll dynamically, so those dlls are also 
+needed to use it on x64 platforms.
 
 ### Notes on non windows users
 
