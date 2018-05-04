@@ -37,6 +37,42 @@ I tested on both 2015 and 2017.
 If you build this way, you may end up having only a 32 bits version of the dll.
 I'll have to investigate on how to get a x64 version easily.
 
+#### Building for Windows 64 bits
+
+You may need a bit of tools to compile, I'm testing it with Visual Studio 2015, but it should
+work on other Visual Studio versions.
+
+So first go ahead and install Visual Studio 2015 express.
+
+The CMake command I use for generating 64 bit builds is the following:
+
+```
+cmake -G "Visual Studio 14 2015 Win64" .
+```
+
+##### For building lua 5.1 for 64 bits
+
+- Got the lua sources (https://www.lua.org/source/)
+- Added this on the Lua build (https://gist.github.com/squeek502/76fb065848897138a95d11f9aa0eedd4)
+- Make with Cmake
+
+##### For building openssl for 64 bits
+
+- I got the openssl sources (https://www.openssl.org/source/)
+- Installed ActivePerl
+- Installed NASM (https://www.nasm.us/pub/nasm/releasebuilds/2.13.03/win64/)
+
+Followed instructions on INSTALL file:
+
+With the visual studio developer command line tools open:
+
+- perl Configure { VC-WIN32 | VC-WIN64A | VC-WIN64I | VC-CE }
+- nmake
+
+##### Building all together
+
+- TODO
+
 ### Notes on non windows users
 
 I didn't try to build this library on other platforms right now.
