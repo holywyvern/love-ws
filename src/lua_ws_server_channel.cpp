@@ -51,7 +51,7 @@ WsServerChannel::WsServerChannel(WsServer *server, const char *channel, size_t l
 	_server = server;
 	auto& endpoint = _server->endpoint[_endpoint];
 	auto channelPtr = this;
-	endpoint.on_message = [=](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::Message> message) {
+	endpoint.on_message = [=](std::shared_ptr<WsServer::Connection> connection, std::shared_ptr<WsServer::InMessage> message) {
 		channelPtr->pushMessage(this->getId(connection), 2, message->string());
 	};
 	endpoint.on_open = [=](std::shared_ptr<WsServer::Connection> connection) {
@@ -148,9 +148,7 @@ void WsServerChannel::sendMessage(std::string id, std::string message)
 	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_idMap.count(id) > 0) {
 		auto connection = _idMap[id];
-		auto send_stream = std::make_shared<WsServer::SendStream>();
-		*send_stream << message;
-		connection->send(send_stream, [](const SimpleWeb::error_code &ec) {
+		connection->send(message, [](const SimpleWeb::error_code &ec) {
 			if (ec) {
 				// Error
 			}
@@ -161,10 +159,8 @@ void WsServerChannel::sendMessage(std::string id, std::string message)
 
 void WsServerChannel::broadcast(std::string message)
 {
-	auto send_stream = std::make_shared<WsServer::SendStream>();
-	*send_stream << message;
 	for (auto &pair : this->_connectionIds) {
-		pair.first->send(send_stream);
+		pair.first->send(message);
 	}
 }
 

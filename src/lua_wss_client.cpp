@@ -82,9 +82,7 @@ WssClient::popMessage(lua_State *L)
 void
 WssClient::sendMessage(std::string message)
 {
-	auto send_stream = std::make_shared<WssClient::SendStream>();
-	*send_stream << message;
-	this->connection->send(send_stream);
+	this->connection->send(message);
 }
 
 
@@ -137,7 +135,7 @@ LuaWssClient::create(lua_State *L)
     WssClient *client = new WssClient(url, validate_cert ? true : false);
     client->_serverOpen = false;
 	client->pushMessage(5, std::string(""));
-    client->on_message = [=](std::shared_ptr<WssClient::Connection> connection, std::shared_ptr<WssClient::Message> message) {
+    client->on_message = [=](std::shared_ptr<WssClient::Connection> connection, std::shared_ptr<WssClient::InMessage> message) {
         client->pushMessage(1, message->string());
     };
     client->on_open = [=](std::shared_ptr<WssClient::Connection> connection) {

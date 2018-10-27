@@ -80,9 +80,7 @@ WsClient::popMessage(lua_State *L)
 void
 WsClient::sendMessage(std::string message)
 {
-    auto send_stream = std::make_shared<WsClient::SendStream>();
-    *send_stream << message;
-    this->connection->send(send_stream);  
+    this->connection->send(message);
 }
 
 WsClient *
@@ -131,7 +129,7 @@ int LuaWsClient::create(lua_State *L)
     WsClient *client = new WsClient(url);
     client->_serverOpen = false;
 	client->pushMessage(5, std::string(""));
-    client->on_message = [=](std::shared_ptr<WsClient::Connection> connection, std::shared_ptr<WsClient::Message> message) {
+    client->on_message = [=](std::shared_ptr<WsClient::Connection> connection, std::shared_ptr<WsClient::InMessage> message) {
         client->pushMessage(1, message->string());
     };
     client->on_open = [=](std::shared_ptr<WsClient::Connection> connection) {
