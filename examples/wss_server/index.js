@@ -19,6 +19,10 @@ wss.on('connection', function connection (ws) {
   console.log("User connected");
   ws.on('message', function message (msg) {
     console.log(`Message from user: ${msg}.`);
+    ws.send("I'll desconnect you in a while");
+    setTimeout(() => {
+      ws.close();
+    }, 10000);
   });
 });
 
