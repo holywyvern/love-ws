@@ -72,7 +72,7 @@ WsServerChannel::WsServerChannel(WsServer *server, const char *channel, size_t l
 void
 WsServerChannel::removeConnection(std::string id)
 {
-	std::lock_guard<std::mutex> lock(_idMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_idMap.count(id) > 0) {
 		auto connection = _idMap[id];
 		if (_connectionIds.count(connection) > 0) {
@@ -85,7 +85,7 @@ WsServerChannel::removeConnection(std::string id)
 void 
 WsServerChannel::removeConnection(std::shared_ptr<WsServer::Connection> connection)
 {
-	std::lock_guard<std::mutex> lock(_idMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_connectionIds.count(connection) > 0) {
 		std::string id = _connectionIds[connection];
 		if (_idMap.count(id) > 0) {
@@ -98,7 +98,7 @@ WsServerChannel::removeConnection(std::shared_ptr<WsServer::Connection> connecti
 std::string 
 WsServerChannel::getId(std::shared_ptr<WsServer::Connection> connection)
 {
-	std::lock_guard<std::mutex> lock(_idMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_connectionIds.count(connection)  < 1) {
 		std::string uuid = this->_server->getId(connection);
 		_connectionIds[connection] = uuid;
@@ -109,7 +109,7 @@ WsServerChannel::getId(std::shared_ptr<WsServer::Connection> connection)
 
 void WsServerChannel::popMessage(lua_State *L)
 {
-	std::lock_guard<std::mutex> lock(_queueMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_messageQueue.empty()) {
 		lua_pushnil(L);
 	}
@@ -138,14 +138,14 @@ void WsServerChannel::pushMessage(std::string connection, int type)
 
 void WsServerChannel::pushMessage(std::string connection, int type, std::string message)
 {
-	std::lock_guard<std::mutex> lock(_queueMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	WsServerMessage msg(connection, type, message);
 	this->_messageQueue.push(msg);
 }
 
 void WsServerChannel::sendMessage(std::string id, std::string message)
 {
-	std::lock_guard<std::mutex> lock(_idMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_idMap.count(id) > 0) {
 		auto connection = _idMap[id];
 		auto send_stream = std::make_shared<WsServer::SendStream>();
@@ -171,7 +171,7 @@ void WsServerChannel::broadcast(std::string message)
 void WsServerChannel::disconnect(std::string id)
 {
 	this->removeConnection(id);
-	std::lock_guard<std::mutex> lock(_idMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_idMap.count(id) > 0) {
 		auto connection = _idMap[id];
 		connection->send_close(100);

@@ -2,7 +2,8 @@
 #define LUA_WSS_CLIENT
 
 #include <queue>
-#include <mutex>
+
+#include <boost/thread.hpp>
 
 #include "lua.hpp"
 #include "client_wss.hpp"
@@ -20,9 +21,9 @@ class WssClient : public SimpleWeb::SocketClient<SimpleWeb::WSS>
   public:
 	  WssClient(const std::string &server_port_path, bool certificate) noexcept;
     bool _serverOpen;
-    std::mutex _queueMutex;
+    boost::mutex _queueMutex;
     std::queue<WssClientMessage> _messageQueue;
-	  std::shared_ptr<std::thread> thread; 
+	  std::shared_ptr<boost::thread> thread; 
 	  void popMessage(lua_State *L);
     void pushMessage(int type, std::string message);
     void sendMessage(std::string message);

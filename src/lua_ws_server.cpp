@@ -58,7 +58,7 @@ WsServer::WsServer(int port) : SimpleWeb::SocketServer<SimpleWeb::WS>() {
 std::string
 WsServer::getId(std::shared_ptr<WsServer::Connection> connection)
 {
-	std::lock_guard<std::mutex> lock(_idMutex);
+	boost::lock_guard<boost::mutex> lock{_idMutex};
 	if (_connectionIds.count(connection)  < 1) {
 		std::string uuid = generateUUID();
 		while (_idMap.count(uuid) > 0) {
@@ -133,7 +133,7 @@ int  LuaWsServer::gc(lua_State *L)
 int LuaWsServer::start(lua_State *L)
 {
 	WsServer * server = LuaWsServer::check(L, 1);
-	server->thread = std::make_shared<std::thread>([=]() {
+	server->thread = std::make_shared<boost::thread>([=]() {
 		server->start();
 	});
 	return 0;

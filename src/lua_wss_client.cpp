@@ -53,7 +53,7 @@ SimpleWeb::SocketClient<SimpleWeb::WSS>(server_port_path, validate_cert) {
 void
 WssClient::pushMessage(int type, std::string message)
 {
-	std::lock_guard<std::mutex> lock(_queueMutex);
+	boost::lock_guard<boost::mutex> lock{_queueMutex};
 	WssClientMessage msg(type, message);
 	_messageQueue.push(msg);
 }
@@ -61,7 +61,7 @@ WssClient::pushMessage(int type, std::string message)
 void
 WssClient::popMessage(lua_State *L)
 {
-	std::lock_guard<std::mutex> lock(_queueMutex);
+	boost::lock_guard<boost::mutex> lock{_queueMutex};
 	if (_messageQueue.empty()) {
 		lua_pushnil(L);
 	}
@@ -176,7 +176,7 @@ int
 LuaWssClient::connect(lua_State *L)
 {
 	WssClient *ws = LuaWssClient::check(L, 1);
-	ws->thread = std::make_shared<std::thread>([=]() {
+	ws->thread = std::make_shared<boost::thread>([=]() {
 		ws->start();
 	});
 	return 0;

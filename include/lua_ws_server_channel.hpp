@@ -2,7 +2,8 @@
 #define LUA_WS_SERVER_CHANNEL
 
 #include <queue>
-#include <mutex>
+
+#include <boost/thread.hpp>
 
 #include "lua.hpp"
 #include "server_ws.hpp"
@@ -20,8 +21,8 @@ public:
 class WsServerChannel {
 private: 
 	WsServer *_server;
-	std::mutex _queueMutex;
-	std::mutex _idMutex;
+	boost::mutex _queueMutex;
+	boost::mutex _idMutex;
 	std::queue<WsServerMessage> _messageQueue;
 	std::string _endpoint;
 	std::map<std::shared_ptr<WsServer::Connection>, std::string> _connectionIds;

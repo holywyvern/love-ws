@@ -2,7 +2,8 @@
 #define LUA_WS_SERVER
 
 #include <queue>
-#include <mutex>
+
+#include <boost/thread.hpp>
 
 #include "lua.hpp"
 #include "server_ws.hpp"
@@ -14,11 +15,11 @@ typedef struct lua_State lua_State;
 class WsServer : public SimpleWeb::SocketServer<SimpleWeb::WS>
 {
   private:
-	std::mutex _idMutex;
+	boost::mutex _idMutex;
 	std::map<std::shared_ptr<WsServer::Connection>, std::string> _connectionIds;
 	std::map<std::string, std::shared_ptr<WsServer::Connection>> _idMap;
   public:
-	  std::shared_ptr<std::thread> thread;
+	  std::shared_ptr<boost::thread> thread;
 	  WsServer(int port);
 	  std::string getId(std::shared_ptr<WsServer::Connection> connection);
 };
